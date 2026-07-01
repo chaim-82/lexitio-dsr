@@ -1,0 +1,17 @@
+# XcodeGen generates this from project.yml — do not commit it.
+AskLexi.xcodeproj/
+
+# Xcode / build
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.xcworkspace/xcuserdata/
+.DS_Store
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Secrets — set DEVELOPMENT_TEAM locally, never commit it
+Configs/Local.xcconfig

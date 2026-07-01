@@ -1,0 +1,69 @@
+{
+  "identifier" : "AskLexiStoreKit",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_applicationInternalID" : "0",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "asklexi_membership",
+      "localizations" : [],
+      "name" : "Lexi Membership",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "plus_monthly",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "More questions, saved conversations, and priority Lexi.",
+              "displayName" : "Lexi+ Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "legal.asklexi.plus.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Lexi+ Monthly",
+          "subscriptionGroupID" : "asklexi_membership",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "pro_monthly",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Everything in Lexi+, plus document drafting and attorney handoff perks.",
+              "displayName" : "Lexi Pro Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "legal.asklexi.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Lexi Pro Monthly",
+          "subscriptionGroupID" : "asklexi_membership",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

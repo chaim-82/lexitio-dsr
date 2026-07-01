@@ -1,0 +1,17 @@
+#include "Shared.xcconfig"
+
+// Production / Release configuration.
+//
+// NOTE: The production API base URL was not reachable from the build
+// environment at scaffold time (org egress policy blocked asklexi.legal), so
+// this points at the same host as Dev. If the production API lives on a
+// dedicated host (e.g. api.asklexi.legal), change API_BASE_URL below.
+API_SCHEME = https
+API_BASE_URL = $(API_SCHEME):/$()/asklexi.legal
+
+// IAP stays disabled for the v1 submission (see README §Monetization). Flip to
+// YES once StoreKit products are configured in App Store Connect and reviewed.
+IAP_ENABLED = NO
+
+// Flip to NO once the production API endpoints in BACKEND_TODO.md are confirmed.
+USE_STUB_SERVICES = YES

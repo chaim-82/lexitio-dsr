@@ -1,0 +1,9 @@
+// Shared build settings for all configurations.
+//
+// Set your Apple Developer Team ID here (10-char string, e.g. A1B2C3D4E5).
+// Leave empty to let Xcode's "Automatically manage signing" prompt you the
+// first time you build to a device. It is safe to keep this file's team empty
+// in source control and set the team in Xcode's Signing & Capabilities tab.
+DEVELOPMENT_TEAM =
+
+// App Transport Security is on by default; the app talks HTTPS only.

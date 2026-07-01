@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Sign in with Apple -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+
+	<!-- Universal Links for magic-link auth. Requires an
+	     apple-app-site-association file hosted at
+	     https://asklexi.legal/.well-known/apple-app-site-association
+	     (see README §Deep links). The custom scheme asklexi:// is the fallback. -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:asklexi.legal</string>
+	</array>
+
+	<!-- Keychain sharing group for token storage. -->
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)legal.asklexi.app</string>
+	</array>
+</dict>
+</plist>

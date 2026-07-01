@@ -1,0 +1,16 @@
+#include "Shared.xcconfig"
+
+// Development / Debug configuration.
+//
+// API_BASE_URL is read at runtime by Config.swift via the Info.plist key
+// "API_BASE_URL" (which is set to $(API_BASE_URL) in Info.plist). The "//"
+// in "https://" would be treated as an xcconfig comment, so we escape the
+// slashes with $() indirection using a well-known xcconfig idiom.
+API_SCHEME = https
+API_BASE_URL = $(API_SCHEME):/$()/asklexi.legal
+
+// Feature flags surfaced to the app via Info.plist.
+IAP_ENABLED = NO
+
+// Run against in-memory stubs until the live API is confirmed (BACKEND_TODO.md).
+USE_STUB_SERVICES = YES
