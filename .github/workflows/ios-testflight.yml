@@ -57,64 +57,14 @@ jobs:
           python3 tools/gen_assets.py
           xcodegen generate
 
-      - name: Write App Store Connect API key
+      # fastlane (preinstalled on the runner) creates the distribution cert +
+      # App Store profile via the API key, signs manually, builds, and uploads.
+      - name: Build & upload to TestFlight (fastlane)
         env:
-          P8: ${{ secrets.APPSTORE_P8_BASE64 }}
-          KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-        run: |
-          mkdir -p ~/private_keys
-          echo "$P8" | base64 --decode > ~/private_keys/AuthKey_${KEY_ID}.p8
-
-      - name: Archive (cloud signing)
-        env:
-          KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-          ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-          TEAM_ID: ${{ secrets.APPLE_TEAM_ID || 'J72CHKVAHR' }}
-        run: |
-          set -o pipefail
-          xcodebuild \
-            -scheme AskLexi \
-            -configuration Release \
-            -destination 'generic/platform=iOS' \
-            -archivePath build/AskLexi.xcarchive \
-            archive \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${KEY_ID}.p8 \
-            -authenticationKeyID "$KEY_ID" \
-            -authenticationKeyIssuerID "$ISSUER_ID" \
-            DEVELOPMENT_TEAM="$TEAM_ID" \
-            CODE_SIGN_STYLE=Automatic \
-            CODE_SIGN_IDENTITY="Apple Distribution" | tee archive.log | tail -40
-
-      - name: Export & upload to TestFlight
-        env:
-          KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-          ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-          TEAM_ID: ${{ secrets.APPLE_TEAM_ID || 'J72CHKVAHR' }}
-        run: |
-          set -o pipefail
-          cat > ExportOptions.plist <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key><string>app-store-connect</string>
-            <key>destination</key><string>upload</string>
-            <key>teamID</key><string>${TEAM_ID}</string>
-            <key>uploadSymbols</key><true/>
-          </dict>
-          </plist>
-          EOF
-          xcodebuild \
-            -exportArchive \
-            -archivePath build/AskLexi.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath build/export \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${KEY_ID}.p8 \
-            -authenticationKeyID "$KEY_ID" \
-            -authenticationKeyIssuerID "$ISSUER_ID" | tee export.log | tail -40
-          echo "Uploaded to App Store Connect — processing takes ~5-15 min, then the build appears in TestFlight."
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_P8_BASE64: ${{ secrets.APPSTORE_P8_BASE64 }}
+        run: fastlane beta
 
       - name: Upload logs on failure
         if: failure()
@@ -122,6 +72,6 @@ jobs:
         with:
           name: TestFlightLogs
           path: |
-            ios/archive.log
-            ios/export.log
+            ios/build/**/*.log
+            /Users/runner/Library/Logs/gym/*.log
           if-no-files-found: ignore

@@ -1,0 +1,61 @@
+# TestFlight lane for CI. Uses the App Store Connect API key (from env) to
+# create/fetch a distribution certificate and App Store provisioning profile,
+# flips the generated project to manual signing, builds, and uploads.
+#
+# Required env: APPSTORE_KEY_ID, APPSTORE_ISSUER_ID, APPSTORE_P8_BASE64
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    setup_ci # temporary keychain so certificate import works on the runner
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("APPSTORE_KEY_ID"),
+      issuer_id: ENV.fetch("APPSTORE_ISSUER_ID"),
+      key_content: ENV.fetch("APPSTORE_P8_BASE64"),
+      is_key_content_base64: true
+    )
+
+    # Create (or reuse) an Apple Distribution certificate in the temp keychain.
+    get_certificates(
+      api_key: api_key,
+      development: false,
+      output_path: "certs"
+    )
+
+    # Create (or reuse) an App Store provisioning profile for the bundle id.
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: "legal.asklexi.app",
+      readonly: false,
+      output_path: "profiles"
+    )
+
+    # Point the generated project at the downloaded profile (manual signing).
+    update_code_signing_settings(
+      path: "AskLexi.xcodeproj",
+      use_automatic_signing: false,
+      team_id: "J72CHKVAHR",
+      code_sign_identity: "Apple Distribution",
+      profile_name: lane_context[SharedValues::SIGH_NAME],
+      targets: ["AskLexi"]
+    )
+
+    build_app(
+      project: "AskLexi.xcodeproj",
+      scheme: "AskLexi",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "build",
+      output_name: "AskLexi.ipa"
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: "build/AskLexi.ipa",
+      skip_waiting_for_build_processing: true
+    )
+  end
+end

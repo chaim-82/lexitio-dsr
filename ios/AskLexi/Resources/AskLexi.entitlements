@@ -8,14 +8,12 @@
 		<string>Default</string>
 	</array>
 
-	<!-- Universal Links for magic-link auth. Requires an
-	     apple-app-site-association file hosted at
-	     https://asklexi.legal/.well-known/apple-app-site-association
-	     (see README §Deep links). The custom scheme asklexi:// is the fallback. -->
-	<key>com.apple.developer.associated-domains</key>
-	<array>
-		<string>applinks:asklexi.legal</string>
-	</array>
+	<!-- Universal Links (applinks:asklexi.legal) intentionally omitted for the
+	     first TestFlight build: the apple-app-site-association file isn't
+	     hosted yet and the App ID doesn't have the Associated Domains
+	     capability enabled. The asklexi:// custom scheme covers magic links.
+	     Re-add com.apple.developer.associated-domains (see README §Deep links)
+	     once both are in place. -->
 
 	<!-- Keychain sharing group for token storage. -->
 	<key>keychain-access-groups</key>
