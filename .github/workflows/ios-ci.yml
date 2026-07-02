@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   build-test:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 30
     defaults:
       run:
@@ -39,12 +39,21 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
+      # Pick whatever recent iPhone simulator this Xcode image ships (device
+      # names drift across runner images: iPhone 15 vs 16 vs 17).
+      - name: Select simulator device
+        run: |
+          DEVICE=$(xcrun simctl list devices available | grep -oE 'iPhone [0-9]+[^(]*' | sed 's/ *$//' | sort -V | tail -1)
+          if [ -z "$DEVICE" ]; then DEVICE=$(xcrun simctl list devices available | grep -oE 'iPhone[^(]*' | sed 's/ *$//' | head -1); fi
+          echo "Using simulator: $DEVICE"
+          echo "SIM_DEVICE=$DEVICE" >> "$GITHUB_ENV"
+
       - name: Build & test (iOS Simulator)
         run: |
           set -o pipefail
           xcodebuild \
             -scheme AskLexi \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -destination "platform=iOS Simulator,name=${SIM_DEVICE}" \
             -derivedDataPath DerivedData \
             -resultBundlePath TestResults.xcresult \
             clean build test \
@@ -58,8 +67,8 @@ jobs:
         run: |
           APP="DerivedData/Build/Products/Debug-iphonesimulator/AskLexi.app"
           mkdir -p Screenshots
-          xcrun simctl boot "iPhone 15" || true
-          xcrun simctl bootstatus "iPhone 15" -b
+          xcrun simctl boot "$SIM_DEVICE" || true
+          xcrun simctl bootstatus "$SIM_DEVICE" -b
           xcrun simctl install booted "$APP"
           # 1) Fresh install → onboarding
           xcrun simctl launch booted legal.asklexi.app && sleep 6
@@ -94,7 +103,7 @@ jobs:
   # Unsigned device IPA for free sideloading (AltStore/SideStore re-sign it with
   # a free Apple ID on the user's PC). $0; app lasts 7 days per refresh.
   sideload-ipa:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 30
     defaults:
       run:
