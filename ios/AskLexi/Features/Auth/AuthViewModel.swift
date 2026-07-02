@@ -84,7 +84,8 @@ final class AuthViewModel {
 
     // MARK: Validation
 
-    static func isValidEmail(_ email: String) -> Bool {
+    // nonisolated: pure string check, callable from nonisolated test methods.
+    nonisolated static func isValidEmail(_ email: String) -> Bool {
         let trimmed = email.trimmingCharacters(in: .whitespaces)
         // Pragmatic check: non-empty local part, "@", a dot in the domain.
         guard let at = trimmed.firstIndex(of: "@"), at != trimmed.startIndex else { return false }
