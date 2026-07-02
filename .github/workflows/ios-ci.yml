@@ -1,0 +1,126 @@
+name: iOS Build & Test
+
+# Builds and unit/UI-tests the AskLexi iOS app on a cloud macOS runner.
+# Free on public repositories. No Apple Developer account or signing is needed
+# because Simulator builds are not code-signed.
+#
+# Later, to ship to TestFlight, add a second job that archives with your Apple
+# signing assets stored as encrypted repo secrets (see SHIP_CHECKLIST.md).
+
+on:
+  push:
+    branches: [ "main", "claude/**" ]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ios-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: macos-14
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate brand assets (colors + placeholder icon)
+        run: python3 tools/gen_assets.py
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build & test (iOS Simulator)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -scheme AskLexi \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -derivedDataPath DerivedData \
+            -resultBundlePath TestResults.xcresult \
+            clean build test \
+            CODE_SIGNING_ALLOWED=NO | tee xcodebuild.log
+
+      # Produce plain-PNG screenshots of the app's key states so the app can be
+      # SEEN running without owning a Mac: download them from the run's Artifacts.
+      # Uses the stub services (USE_STUB_SERVICES=YES) + the asklexi:// deep link.
+      - name: Screenshot app states (onboarding / sign-in / home)
+        continue-on-error: true
+        run: |
+          APP="DerivedData/Build/Products/Debug-iphonesimulator/AskLexi.app"
+          mkdir -p Screenshots
+          xcrun simctl boot "iPhone 15" || true
+          xcrun simctl bootstatus "iPhone 15" -b
+          xcrun simctl install booted "$APP"
+          # 1) Fresh install → onboarding
+          xcrun simctl launch booted legal.asklexi.app && sleep 6
+          xcrun simctl io booted screenshot Screenshots/01-onboarding.png
+          # 2) Mark onboarding done → relaunch → sign-in
+          xcrun simctl terminate booted legal.asklexi.app || true
+          xcrun simctl spawn booted defaults write legal.asklexi.app onboarding.completed -bool YES
+          xcrun simctl launch booted legal.asklexi.app && sleep 4
+          xcrun simctl io booted screenshot Screenshots/02-signin.png
+          # 3) Stub magic-link deep link → Home
+          xcrun simctl openurl booted "asklexi://auth?token=demo" && sleep 4
+          xcrun simctl io booted screenshot Screenshots/03-home.png
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AppScreenshots
+          path: ios/Screenshots/*.png
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: |
+            ios/TestResults.xcresult
+            ios/xcodebuild.log
+          if-no-files-found: ignore
+
+  # Unsigned device IPA for free sideloading (AltStore/SideStore re-sign it with
+  # a free Apple ID on the user's PC). $0; app lasts 7 days per refresh.
+  sideload-ipa:
+    runs-on: macos-14
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate assets + project
+        run: python3 tools/gen_assets.py && xcodegen generate
+      - name: Build unsigned device app and package IPA
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -scheme AskLexi \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath DerivedData \
+            build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            | tee ipa-build.log
+          APP="DerivedData/Build/Products/Release-iphoneos/AskLexi.app"
+          mkdir -p Payload && cp -R "$APP" Payload/
+          zip -qry AskLexi-unsigned.ipa Payload
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AskLexi-unsigned-ipa
+          path: ios/AskLexi-unsigned.ipa
