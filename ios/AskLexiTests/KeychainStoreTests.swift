@@ -3,12 +3,25 @@ import XCTest
 
 /// Runs against the real Keychain in the simulator. Uses a unique service per
 /// run so tests don't collide with app data or each other.
+///
+/// Skipped automatically when the test runner lacks keychain entitlements —
+/// unsigned CI builds (CODE_SIGNING_ALLOWED=NO) get errSecMissingEntitlement
+/// (-34018) from the Security framework. Run locally on a Mac for full coverage.
 final class KeychainStoreTests: XCTestCase {
     private var store: KeychainStore!
 
-    override func setUp() {
-        super.setUp()
+    private static let errSecMissingEntitlement: OSStatus = -34018
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
         store = KeychainStore(service: "legal.asklexi.tests.\(UUID().uuidString)")
+        // Probe once; skip the suite in unsigned environments.
+        do {
+            try store.setString("probe", for: "entitlement-probe")
+            try store.remove("entitlement-probe")
+        } catch KeychainStore.KeychainError.unexpectedStatus(Self.errSecMissingEntitlement) {
+            throw XCTSkip("Keychain entitlements unavailable in unsigned CI test runner")
+        }
     }
 
     override func tearDown() {

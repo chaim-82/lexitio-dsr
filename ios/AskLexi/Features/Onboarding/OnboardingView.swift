@@ -43,16 +43,31 @@ struct OnboardingView: View {
                 icon: "checkmark.seal",
                 title: Strings.onboard2Title,
                 message: Strings.onboard2Body)
-            Toggle(isOn: $acknowledged) {
-                Text(Strings.onboard2Acknowledge)
-                    .font(Typography.body)
-                    .foregroundStyle(Theme.textPrimary)
+            // A button-styled checkbox rather than a Toggle: explicit tap target,
+            // reliable under VoiceOver and UI testing (SwiftUI Toggles are not
+            // consistently hittable via XCUITest).
+            Button {
+                acknowledged.toggle()
+            } label: {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.sm) {
+                    Image(systemName: acknowledged ? "checkmark.square.fill" : "square")
+                        .font(.title3)
+                        .foregroundStyle(acknowledged ? Theme.brandPrimary : Theme.textSecondary)
+                    Text(Strings.onboard2Acknowledge)
+                        .font(Typography.body)
+                        .foregroundStyle(Theme.textPrimary)
+                        .multilineTextAlignment(.leading)
+                }
+                .padding(Theme.Spacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .tint(Theme.brandPrimary)
-            .padding(Theme.Spacing.md)
+            .buttonStyle(.plain)
             .background(Theme.surfaceElevated)
             .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.card, style: .continuous))
             .padding(.horizontal, Theme.Spacing.lg)
+            .accessibilityIdentifier("acknowledgeDisclaimer")
+            .accessibilityAddTraits(acknowledged ? [.isButton, .isSelected] : .isButton)
             .accessibilityHint("Required to continue")
         }
     }
