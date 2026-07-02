@@ -29,13 +29,14 @@ final class SubscriptionManager {
     private(set) var purchaseInFlight: String?
 
     private let subscriptions: any SubscriptionServicing
+    // App-lifetime object (owned by AppEnvironment); the updates listener runs
+    // for the life of the app, so no deinit cancellation is needed — and deinit
+    // is nonisolated, so it may not touch this MainActor property anyway.
     private var updatesTask: Task<Void, Never>?
 
     init(subscriptions: any SubscriptionServicing) {
         self.subscriptions = subscriptions
     }
-
-    deinit { updatesTask?.cancel() }
 
     /// The paywall can show purchases only when IAP is enabled and products loaded.
     var canPurchase: Bool { Config.iapEnabled && !products.isEmpty }
