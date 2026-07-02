@@ -19,10 +19,14 @@ platform :ios do
     )
 
     # Create (or reuse) an Apple Distribution certificate in the temp keychain.
+    # keychain_path must match the keychain setup_ci created — otherwise cert
+    # imports into login.keychain and then can't find the identity.
     get_certificates(
       api_key: api_key,
       development: false,
-      output_path: "certs"
+      output_path: "certs",
+      keychain_path: File.expand_path("~/Library/Keychains/fastlane_tmp_keychain-db"),
+      keychain_password: ""
     )
 
     # Create (or reuse) an App Store provisioning profile for the bundle id.
