@@ -20,6 +20,11 @@ name: TestFlight Deploy
 
 on:
   workflow_dispatch:
+  # Push-trigger scoped to this file: editing/touching the workflow deploys.
+  # (The session's tooling cannot call the workflow_dispatch API directly.)
+  push:
+    branches: [ "claude/lexi-ios-v1-setup-9u342x" ]
+    paths: [ ".github/workflows/ios-testflight.yml" ]
 
 jobs:
   testflight:
