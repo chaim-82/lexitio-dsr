@@ -47,6 +47,22 @@ platform :ios do
       targets: ["AskLexi"]
     )
 
+    # Ensure the App Store Connect app record exists (creates it on first run;
+    # no-op if it's already there). Avoids a manual "My Apps → + → New App" step.
+    begin
+      produce(
+        api_key: api_key,
+        app_identifier: "legal.asklexi.app",
+        app_name: "Lexi by Lexitio",
+        language: "English (U.S.)",
+        sku: "asklexi-ios",
+        team_id: "J72CHKVAHR",
+        company_name: "Lexitio"
+      )
+    rescue => e
+      UI.important("produce: #{e.message} — continuing (app likely already exists)")
+    end
+
     build_app(
       project: "AskLexi.xcodeproj",
       scheme: "AskLexi",
