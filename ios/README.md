@@ -122,12 +122,12 @@ Two paths back into the app after tapping an emailed link:
      "applinks": {
        "apps": [],
        "details": [
-         { "appID": "TEAMID.legal.asklexi.app", "paths": ["/auth*"] }
+         { "appID": "J72CHKVAHR.legal.asklexi.app", "paths": ["/auth*"] }
        ]
      }
    }
    ```
-   Replace `TEAMID` with your Apple Developer Team ID.
+   
 
 2. **Custom scheme fallback** — `asklexi://auth?token=…` (registered in
    `Info.plist`). Handled in `AppState.handleDeepLink(_:)`.
