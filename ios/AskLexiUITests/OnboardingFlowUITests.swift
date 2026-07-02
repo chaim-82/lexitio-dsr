@@ -22,7 +22,6 @@ final class OnboardingFlowUITests: XCTestCase {
         let acknowledge = app.buttons["acknowledgeDisclaimer"]
         XCTAssertTrue(acknowledge.waitForExistence(timeout: 5))
         acknowledge.tap()
-        let continueButton = app.buttons[Localized.continueTitle]
         XCTAssertTrue(continueButton.isEnabled, "Continue should enable after acknowledging")
         continueButton.tap()
 
